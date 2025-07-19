@@ -1,0 +1,55 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Antrenman Takvimi</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Antrenman Takvimi</h1>
+  <div class="calendar" id="calendar"></div>
+  <div class="exercise-list" id="exerciseList"></div>
+  <script src="common.js"></script>
+  <script>
+    const calendarEl = document.getElementById('calendar');
+    const exerciseListEl = document.getElementById('exerciseList');
+    let currentData = {};
+
+    function renderCalendar(data) {
+      calendarEl.innerHTML = "";
+      const todayStr = new Date().toISOString().split("T")[0];
+
+      Object.keys(data).forEach(date => {
+        const dayEl = document.createElement("div");
+        dayEl.className = "day";
+        if (date === todayStr) dayEl.classList.add("today");
+
+        const ex = data[date].exercises;
+        const doneCount = ex.filter(e => e.done).length;
+        if (doneCount === ex.length) {
+          dayEl.classList.add("completed");
+        } else if (doneCount > 0) {
+          dayEl.classList.add("in-progress");
+        } else {
+          dayEl.classList.add("missed");
+        }
+
+        dayEl.innerText = date;
+        dayEl.onclick = () => showExercises(date, ex);
+        calendarEl.appendChild(dayEl);
+      });
+    }
+
+    function showExercises(date, exercises) {
+      exerciseListEl.innerHTML = `<h3>${date} Egzersizleri</h3><ul>` +
+        exercises.map(e => `<li>${e.name} - ${e.done ? "✔️" : "❌"}</li>`).join("") +
+        "</ul>";
+    }
+
+    fetchData().then(data => {
+      currentData = data;
+      renderCalendar(data);
+    });
+  </script>
+</body>
+</html>

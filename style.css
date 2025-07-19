@@ -1,0 +1,38 @@
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f8f8f8;
+  color: #333;
+  margin: 0;
+  padding: 0;
+}
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  padding: 10px;
+}
+.day {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 8px;
+  background-color: #fff;
+}
+.day.today {
+  border: 2px solid #000;
+}
+.day.completed {
+  background-color: #d4edda;
+}
+.day.in-progress {
+  background-color: #fff3cd;
+}
+.day.missed {
+  background-color: #f8d7da;
+}
+.exercise-list {
+  margin-top: 20px;
+  padding: 10px;
+}
