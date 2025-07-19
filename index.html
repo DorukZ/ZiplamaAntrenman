@@ -1,55 +1,154 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
+  <meta charset="UTF-8" />
   <title>Antrenman Takvimi</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg: #f2f2f2;
+      --text: #000;
+      --card: #fff;
+      --border: #ccc;
+    }
+    body.dark {
+      --bg: #121212;
+      --text: #eee;
+      --card: #1e1e1e;
+      --border: #444;
+    }
+    body {
+      font-family: Arial; background: var(--bg); margin: 0; padding: 1rem; text-align: center; color: var(--text); transition: background 0.3s, color 0.3s;
+    }
+    h1 { margin-bottom: 10px; }
+    #month-nav { margin-bottom: 1rem; display: flex; justify-content: center; align-items: center; gap: 10px; }
+    .calendar {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; max-width: 900px; margin: auto;
+    }
+    .day {
+      background: var(--card); border: 2px solid var(--border); padding: 10px; border-radius: 6px;
+      transition: 0.2s;
+    }
+    .today { border: 2px solid black; }
+    .completed { background-color: #c8f7c5; }
+    .incomplete { background-color: #f7c5c5; }
+    .in-progress { background-color: #fff3b0; }
+    .past-day:not(.today) { opacity: 0.5; }
+    .workout-container {
+      margin-top: 20px; text-align: left; background: var(--card); padding: 20px; border-radius: 8px;
+      max-width: 500px; margin-left: auto; margin-right: auto; border: 1px solid var(--border);
+    }
+    .checkbox { margin: 5px 0; }
+    #days-header {
+      display: grid; grid-template-columns: repeat(7, 1fr); max-width: 900px; margin: auto; font-weight: bold; margin-bottom: 10px;
+    }
+    .toggle-mode {
+      position: fixed; top: 10px; right: 10px; background: var(--card); border: 1px solid var(--border);
+      color: var(--text); padding: 5px 10px; border-radius: 4px; cursor: pointer; z-index: 3;
+    }
+  </style>
 </head>
 <body>
+  <button class="toggle-mode" onclick="toggleDarkMode()">🌙</button>
   <h1>Antrenman Takvimi</h1>
+  <div id="month-nav">
+    <button onclick="changeMonth(-1)">←</button>
+    <span id="month-year">Yükleniyor...</span>
+    <button onclick="changeMonth(1)">→</button>
+  </div>
+  <div id="days-header">
+    <div>Pzt</div><div>Salı</div><div>Çarş</div><div>Perş</div><div>Cuma</div><div>Ctesi</div><div>Pazar</div>
+  </div>
   <div class="calendar" id="calendar"></div>
-  <div class="exercise-list" id="exerciseList"></div>
-  <script src="common.js"></script>
+  <div class="workout-container" id="workout-details">Gün bilgisi yüklenecek...</div>
+
   <script>
-    const calendarEl = document.getElementById('calendar');
-    const exerciseListEl = document.getElementById('exerciseList');
-    let currentData = {};
+    const binId = '687a13b96213bd325afbbe5e';
+    const apiKey = '$2a$10$sNHjrdpRXLmd4/CDDtyxZOsljKtoyVaXwUTlb4/GSqVxF.XyAwfj2';
+    let jsonData = {};
+    let currentMonth = new Date().getMonth();
+    let currentYear = new Date().getFullYear();
 
-    function renderCalendar(data) {
-      calendarEl.innerHTML = "";
-      const todayStr = new Date().toISOString().split("T")[0];
+    function formatDate(date) {
+      const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+      return offsetDate.toISOString().split('T')[0];
+    }
 
-      Object.keys(data).forEach(date => {
-        const dayEl = document.createElement("div");
-        dayEl.className = "day";
-        if (date === todayStr) dayEl.classList.add("today");
+    async function fetchData() {
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+        headers: { 'X-Master-Key': apiKey }
+      });
+      const data = await res.json();
+      jsonData = data.record;
+      renderCalendar(currentMonth, currentYear);
+      showWorkoutDetails(formatDate(new Date()));
+    }
 
-        const ex = data[date].exercises;
-        const doneCount = ex.filter(e => e.done).length;
-        if (doneCount === ex.length) {
-          dayEl.classList.add("completed");
-        } else if (doneCount > 0) {
-          dayEl.classList.add("in-progress");
-        } else {
-          dayEl.classList.add("missed");
+    function renderCalendar(month, year) {
+      const calendar = document.getElementById('calendar');
+      const monthYearText = document.getElementById('month-year');
+      calendar.innerHTML = '';
+      const date = new Date(year, month, 1);
+      const todayStr = formatDate(new Date());
+
+      const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül"];
+      monthYearText.textContent = `${monthNames[month]} ${year}`;
+
+      while (date.getMonth() === month) {
+        const dateStr = formatDate(date);
+        const dayEl = document.createElement('div');
+        dayEl.className = 'day';
+        dayEl.textContent = date.getDate();
+
+        if (dateStr === todayStr) dayEl.classList.add('today');
+        if (dateStr < todayStr) dayEl.classList.add('past-day');
+
+        const entry = jsonData[dateStr];
+        if (entry) {
+          const doneCount = entry.exercises.filter(e => e.done).length;
+          if (doneCount === 0) dayEl.classList.add('incomplete');
+          else if (doneCount < entry.exercises.length) dayEl.classList.add('in-progress');
+          else dayEl.classList.add('completed');
         }
 
-        dayEl.innerText = date;
-        dayEl.onclick = () => showExercises(date, ex);
-        calendarEl.appendChild(dayEl);
+        dayEl.onclick = () => showWorkoutDetails(dateStr);
+        calendar.appendChild(dayEl);
+        date.setDate(date.getDate() + 1);
+      }
+    }
+
+    function showWorkoutDetails(dateStr) {
+      const container = document.getElementById('workout-details');
+      const entry = jsonData[dateStr];
+      container.innerHTML = `<h3>${dateStr} Antrenmanı</h3>`;
+
+      if (!entry) {
+        container.innerHTML += `<p>Bu tarihte antrenman yok.</p>`;
+        return;
+      }
+
+      entry.exercises.forEach((exercise) => {
+        const label = document.createElement("label");
+        label.className = "checkbox";
+        label.textContent = `${exercise.name} - ${exercise.done ? "✔️" : "❌"}`;
+        container.appendChild(label);
+        container.appendChild(document.createElement("br"));
       });
     }
 
-    function showExercises(date, exercises) {
-      exerciseListEl.innerHTML = `<h3>${date} Egzersizleri</h3><ul>` +
-        exercises.map(e => `<li>${e.name} - ${e.done ? "✔️" : "❌"}</li>`).join("") +
-        "</ul>";
+    function changeMonth(offset) {
+      const validMonths = [6, 7, 8];
+      let next = currentMonth + offset;
+      if (!validMonths.includes(next)) return;
+      currentMonth = next;
+      renderCalendar(currentMonth, currentYear);
     }
 
-    fetchData().then(data => {
-      currentData = data;
-      renderCalendar(data);
-    });
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark');
+    }
+
+    fetchData();
   </script>
 </body>
 </html>
