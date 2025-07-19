@@ -1,0 +1,71 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Paneli - Antrenman</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <h1>Admin Paneli</h1>
+  <div class="calendar" id="calendar"></div>
+  <div class="exercise-list" id="exerciseList"></div>
+  <script src="../common.js"></script>
+  <script>
+    const calendarEl = document.getElementById('calendar');
+    const exerciseListEl = document.getElementById('exerciseList');
+    let currentData = {};
+    let todayStr = new Date().toISOString().split("T")[0];
+
+    function renderCalendar(data) {
+      calendarEl.innerHTML = "";
+
+      Object.keys(data).forEach(date => {
+        const dayEl = document.createElement("div");
+        dayEl.className = "day";
+        if (date === todayStr) dayEl.classList.add("today");
+
+        const ex = data[date].exercises;
+        const doneCount = ex.filter(e => e.done).length;
+        if (doneCount === ex.length) {
+          dayEl.classList.add("completed");
+        } else if (doneCount > 0) {
+          dayEl.classList.add("in-progress");
+        } else {
+          dayEl.classList.add("missed");
+        }
+
+        dayEl.innerText = date;
+        dayEl.onclick = () => showExercises(date, ex);
+        calendarEl.appendChild(dayEl);
+      });
+    }
+
+    function showExercises(date, exercises) {
+      const editable = date === todayStr;
+      exerciseListEl.innerHTML = `<h3>${date} Egzersizleri</h3><ul>` +
+        exercises.map((e, i) => {
+          return `<li>
+            <label>
+              <input type="checkbox" ${e.done ? "checked" : ""} ${!editable ? "disabled" : ""} onchange="toggleDone('${date}', ${i}, this.checked)">
+              ${e.name}
+            </label>
+          </li>`;
+        }).join("") +
+        "</ul>";
+    }
+
+    function toggleDone(date, index, value) {
+      currentData[date].exercises[index].done = value;
+      saveData(currentData).then(() => {
+        renderCalendar(currentData);
+        showExercises(date, currentData[date].exercises);
+      });
+    }
+
+    fetchData().then(data => {
+      currentData = data;
+      renderCalendar(data);
+    });
+  </script>
+</body>
+</html>
