@@ -1,71 +1,32 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <title>Admin Giriş</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <title>Admin Girişi</title>
   <style>
-    body {
-      font-family: Arial;
-      background: #f2f2f2;
-      color: #333;
-      text-align: center;
-      padding-top: 100px;
-    }
-    #login-container {
-      background: white;
-      display: inline-block;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    input[type="password"] {
-      padding: 10px;
-      font-size: 16px;
-      width: 200px;
-      margin-bottom: 10px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      background: black;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    #main-content {
-      display: none;
-    }
-    iframe {
-      width: 100%;
-      height: 100vh;
-      border: none;
-    }
+    body { font-family: Arial; text-align: center; padding: 50px; background: #f2f2f2; }
+    input, button { margin: 10px; padding: 10px; font-size: 1rem; }
+    iframe { width: 100%; height: 90vh; border: none; display: none; }
   </style>
 </head>
 <body>
-  <div id="login-container">
-    <h2>Yönetici Girişi</h2>
-    <input type="password" id="password" placeholder="Şifre girin..." />
-    <br />
-    <button onclick="checkPassword()">Giriş Yap</button>
-    <p id="error" style="color:red;"></p>
-  </div>
+  <h2>Yönetici Girişi</h2>
+  <input type="password" id="adminPass" placeholder="Şifreyi girin">
+  <button onclick="login()">Giriş Yap</button>
 
-  <div id="main-content">
-    <iframe src="index.html?admin=1"></iframe>
-  </div>
+  <iframe id="adminFrame" src=""></iframe>
 
   <script>
-    const correctPassword = "admin123"; // Giriş şifresi
-    function checkPassword() {
-      const input = document.getElementById("password").value;
-      if (input === correctPassword) {
-        document.getElementById("login-container").style.display = "none";
-        document.getElementById("main-content").style.display = "block";
+    function login() {
+      const pass = document.getElementById("adminPass").value;
+      if (pass === "admin123") {
+        document.querySelector("iframe").style.display = "block";
+        document.querySelector("iframe").src = "index.html?admin=1";
+        document.querySelector("input").style.display = "none";
+        document.querySelector("button").style.display = "none";
+        document.querySelector("h2").textContent = "Yönetici Paneli";
       } else {
-        document.getElementById("error").innerText = "Şifre yanlış!";
+        alert("Hatalı şifre!");
       }
     }
   </script>
