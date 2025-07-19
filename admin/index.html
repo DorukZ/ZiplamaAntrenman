@@ -1,32 +1,41 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Admin Girişi</title>
+  <meta charset="UTF-8">
+  <title>Admin Giriş</title>
   <style>
-    body { font-family: Arial; text-align: center; padding: 50px; background: #f2f2f2; }
-    input, button { margin: 10px; padding: 10px; font-size: 1rem; }
-    iframe { width: 100%; height: 90vh; border: none; display: none; }
+    body { font-family: Arial; background: #121212; color: white; text-align: center; margin: 0; padding: 2rem; }
+    input, button {
+      padding: 10px; font-size: 1rem; border-radius: 5px; border: none;
+      margin-top: 10px;
+    }
+    iframe {
+      width: 100vw; height: 100vh; border: none;
+      visibility: hidden; opacity: 0; height: 0;
+      transition: all 0.3s ease;
+    }
+    iframe.active {
+      visibility: visible; opacity: 1; height: 100vh;
+    }
   </style>
 </head>
 <body>
-  <h2>Yönetici Girişi</h2>
-  <input type="password" id="adminPass" placeholder="Şifreyi girin">
-  <button onclick="login()">Giriş Yap</button>
+  <h1>Yönetici Girişi</h1>
+  <input type="password" id="adminPassword" placeholder="Şifreyi girin" />
+  <br />
+  <button onclick="checkPassword()">Giriş</button>
 
-  <iframe id="adminFrame" src=""></iframe>
+  <iframe id="adminFrame" src="index.html?admin=1"></iframe>
 
   <script>
-    function login() {
-      const pass = document.getElementById("adminPass").value;
-      if (pass === "admin123") {
-        document.querySelector("iframe").style.display = "block";
-        document.querySelector("iframe").src = "index.html?admin=1";
-        document.querySelector("input").style.display = "none";
-        document.querySelector("button").style.display = "none";
-        document.querySelector("h2").textContent = "Yönetici Paneli";
+    function checkPassword() {
+      const correctPassword = "1234";
+      const entered = document.getElementById("adminPassword").value;
+      const frame = document.getElementById("adminFrame");
+      if (entered === correctPassword) {
+        frame.classList.add("active");
       } else {
-        alert("Hatalı şifre!");
+        alert("Şifre yanlış!");
       }
     }
   </script>
