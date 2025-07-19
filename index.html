@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <title>Antrenman Takvimi</title>
+  <title>Zıplama Antrenman Takvimi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     :root {
@@ -27,7 +27,7 @@
     }
     .day {
       background: var(--card); border: 2px solid var(--border); padding: 10px; border-radius: 6px;
-      transition: 0.2s;
+      cursor: pointer; transition: 0.2s;
     }
     .today { border: 2px solid black; }
     .completed { background-color: #c8f7c5; }
@@ -49,8 +49,8 @@
   </style>
 </head>
 <body>
-  <button class="toggle-mode" onclick="toggleDarkMode()">🌙</button>
-  <h1>Antrenman Takvimi</h1>
+  <button class="toggle-mode" onclick="document.body.classList.toggle('dark')">🌙</button>
+  <h1>Zıplama Antrenman Takvimi</h1>
   <div id="month-nav">
     <button onclick="changeMonth(-1)">←</button>
     <span id="month-year">Yükleniyor...</span>
@@ -84,57 +84,61 @@
       showWorkoutDetails(formatDate(new Date()));
     }
 
-    function renderCalendar(month, year) {
-      const calendar = document.getElementById('calendar');
-      const monthYearText = document.getElementById('month-year');
-      calendar.innerHTML = '';
-      const date = new Date(year, month, 1);
-      const todayStr = formatDate(new Date());
+    
+function renderCalendar(month, year) {
+  const calendar = document.getElementById('calendar');
+  const monthYearText = document.getElementById('month-year');
+  calendar.innerHTML = '';
+  const date = new Date(year, month, 1);
+  const todayStr = formatDate(new Date());
 
-      const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül"];
-      monthYearText.textContent = `${monthNames[month]} ${year}`;
+  const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül"];
+  monthYearText.textContent = `${monthNames[month]} ${year}`;
 
-      while (date.getMonth() === month) {
-        const dateStr = formatDate(date);
-        const dayEl = document.createElement('div');
-        dayEl.className = 'day';
-        dayEl.textContent = date.getDate();
+  while (date.getMonth() === month) {
+    const dateStr = formatDate(date);
+    const dayEl = document.createElement('div');
+    dayEl.className = 'day';
+    dayEl.textContent = date.getDate();
 
-        if (dateStr === todayStr) dayEl.classList.add('today');
-        if (dateStr < todayStr) dayEl.classList.add('past-day');
+    if (dateStr === todayStr) dayEl.classList.add('today');
+    if (dateStr < todayStr) dayEl.classList.add('past-day');
 
-        const entry = jsonData[dateStr];
-        if (entry) {
-          const doneCount = entry.exercises.filter(e => e.done).length;
-          if (doneCount === 0) dayEl.classList.add('incomplete');
-          else if (doneCount < entry.exercises.length) dayEl.classList.add('in-progress');
-          else dayEl.classList.add('completed');
-        }
-
-        dayEl.onclick = () => showWorkoutDetails(dateStr);
-        calendar.appendChild(dayEl);
-        date.setDate(date.getDate() + 1);
-      }
+    const entry = jsonData[dateStr];
+    if (entry) {
+      const doneCount = entry.exercises.filter(e => e.done).length;
+      if (doneCount === 0) dayEl.classList.add('incomplete');
+      else if (doneCount < entry.exercises.length) dayEl.classList.add('in-progress');
+      else dayEl.classList.add('completed');
     }
 
-    function showWorkoutDetails(dateStr) {
-      const container = document.getElementById('workout-details');
-      const entry = jsonData[dateStr];
-      container.innerHTML = `<h3>${dateStr} Antrenmanı</h3>`;
+    dayEl.onclick = () => showWorkoutDetails(dateStr);
+    calendar.appendChild(dayEl);
+    date.setDate(date.getDate() + 1);
+  }
+}
 
-      if (!entry) {
-        container.innerHTML += `<p>Bu tarihte antrenman yok.</p>`;
-        return;
-      }
 
-      entry.exercises.forEach((exercise) => {
-        const label = document.createElement("label");
-        label.className = "checkbox";
-        label.textContent = `${exercise.name} - ${exercise.done ? "✔️" : "❌"}`;
-        container.appendChild(label);
-        container.appendChild(document.createElement("br"));
-      });
-    }
+    
+function showWorkoutDetails(dateStr) {
+  const container = document.getElementById('workout-details');
+  const entry = jsonData[dateStr];
+  container.innerHTML = `<h3>${dateStr} Antrenmanı</h3>`;
+
+  if (!entry) {
+    container.innerHTML += `<p>Bu tarihte antrenman yok.</p>`;
+    return;
+  }
+
+  entry.exercises.forEach((exercise) => {
+    const label = document.createElement("label");
+    label.className = "checkbox";
+    label.textContent = `${exercise.name} - ${exercise.done ? "✔️" : "❌"}`;
+    container.appendChild(label);
+    container.appendChild(document.createElement("br"));
+  });
+}
+
 
     function changeMonth(offset) {
       const validMonths = [6, 7, 8];
@@ -142,10 +146,6 @@
       if (!validMonths.includes(next)) return;
       currentMonth = next;
       renderCalendar(currentMonth, currentYear);
-    }
-
-    function toggleDarkMode() {
-      document.body.classList.toggle('dark');
     }
 
     fetchData();
