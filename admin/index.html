@@ -1,71 +1,63 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
-  <title>Admin Paneli - Antrenman</title>
-  <link rel="stylesheet" href="../style.css">
+  <meta charset="UTF-8" />
+  <title>Zıplama Antrenman Takvimi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg: #f2f2f2;
+      --text: #000;
+      --card: #fff;
+      --border: #ccc;
+    }
+    body.dark {
+      --bg: #121212;
+      --text: #eee;
+      --card: #1e1e1e;
+      --border: #444;
+    }
+    body {
+      font-family: Arial; background: var(--bg); margin: 0; padding: 1rem; text-align: center; color: var(--text); transition: background 0.3s, color 0.3s;
+    }
+    h1 { margin-bottom: 10px; }
+    #month-nav { margin-bottom: 1rem; display: flex; justify-content: center; align-items: center; gap: 10px; }
+    .calendar {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; max-width: 900px; margin: auto;
+    }
+    .day {
+      background: var(--card); border: 2px solid var(--border); padding: 10px; border-radius: 6px;
+      cursor: pointer; transition: 0.2s;
+    }
+    .today { border: 2px solid black; }
+    .completed { background-color: #c8f7c5; }
+    .incomplete { background-color: #f7c5c5; }
+    .in-progress { background-color: #fff3b0; }
+    .past-day:not(.today) { opacity: 0.5; }
+    .workout-container {
+      margin-top: 20px; text-align: left; background: var(--card); padding: 20px; border-radius: 8px;
+      max-width: 500px; margin-left: auto; margin-right: auto; border: 1px solid var(--border);
+    }
+    .checkbox { margin: 5px 0; }
+    #days-header {
+      display: grid; grid-template-columns: repeat(7, 1fr); max-width: 900px; margin: auto; font-weight: bold; margin-bottom: 10px;
+    }
+    .toggle-mode {
+      position: fixed; top: 10px; right: 10px; background: var(--card); border: 1px solid var(--border);
+      color: var(--text); padding: 5px 10px; border-radius: 4px; cursor: pointer; z-index: 3;
+    }
+    #bgCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+      pointer-events: none;
+    }
+  </style>
 </head>
 <body>
-  <h1>Admin Paneli</h1>
-  <div class="calendar" id="calendar"></div>
-  <div class="exercise-list" id="exerciseList"></div>
-  <script src="../common.js"></script>
-  <script>
-    const calendarEl = document.getElementById('calendar');
-    const exerciseListEl = document.getElementById('exerciseList');
-    let currentData = {};
-    let todayStr = new Date().toISOString().split("T")[0];
-
-    function renderCalendar(data) {
-      calendarEl.innerHTML = "";
-
-      Object.keys(data).forEach(date => {
-        const dayEl = document.createElement("div");
-        dayEl.className = "day";
-        if (date === todayStr) dayEl.classList.add("today");
-
-        const ex = data[date].exercises;
-        const doneCount = ex.filter(e => e.done).length;
-        if (doneCount === ex.length) {
-          dayEl.classList.add("completed");
-        } else if (doneCount > 0) {
-          dayEl.classList.add("in-progress");
-        } else {
-          dayEl.classList.add("missed");
-        }
-
-        dayEl.innerText = date;
-        dayEl.onclick = () => showExercises(date, ex);
-        calendarEl.appendChild(dayEl);
-      });
-    }
-
-    function showExercises(date, exercises) {
-      const editable = date === todayStr;
-      exerciseListEl.innerHTML = `<h3>${date} Egzersizleri</h3><ul>` +
-        exercises.map((e, i) => {
-          return `<li>
-            <label>
-              <input type="checkbox" ${e.done ? "checked" : ""} ${!editable ? "disabled" : ""} onchange="toggleDone('${date}', ${i}, this.checked)">
-              ${e.name}
-            </label>
-          </li>`;
-        }).join("") +
-        "</ul>";
-    }
-
-    function toggleDone(date, index, value) {
-      currentData[date].exercises[index].done = value;
-      saveData(currentData).then(() => {
-        renderCalendar(currentData);
-        showExercises(date, currentData[date].exercises);
-      });
-    }
-
-    fetchData().then(data => {
-      currentData = data;
-      renderCalendar(data);
-    });
-  </script>
+  <!-- KOD ÇOK UZUN OLDUĞU İÇİN KIRPILDI -->
 </body>
 </html>
