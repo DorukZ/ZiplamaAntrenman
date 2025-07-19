@@ -1,174 +1,73 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Zıplama Antrenman Takvimi</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Admin Giriş</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    :root {
-      --bg: #f2f2f2;
-      --text: #000;
-      --card: #fff;
-      --border: #ccc;
-    }
-    body.dark {
-      --bg: #121212;
-      --text: #eee;
-      --card: #1e1e1e;
-      --border: #444;
-    }
     body {
-      font-family: Arial; background: var(--bg); margin: 0; padding: 1rem; text-align: center; color: var(--text); transition: background 0.3s, color 0.3s;
+      font-family: Arial;
+      background: #f2f2f2;
+      color: #333;
+      text-align: center;
+      padding-top: 100px;
     }
-    h1 { margin-bottom: 10px; }
-    #month-nav { margin-bottom: 1rem; display: flex; justify-content: center; align-items: center; gap: 10px; }
-    .calendar {
-      display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; max-width: 900px; margin: auto;
+    #login-container {
+      background: white;
+      display: inline-block;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    .day {
-      background: var(--card); border: 2px solid var(--border); padding: 10px; border-radius: 6px;
-      cursor: pointer; transition: 0.2s;
+    input[type="password"] {
+      padding: 10px;
+      font-size: 16px;
+      width: 200px;
+      margin-bottom: 10px;
     }
-    .today { border: 2px solid black; }
-    .completed { background-color: #c8f7c5; }
-    .incomplete { background-color: #f7c5c5; }
-    .in-progress { background-color: #fff3b0; }
-    .past-day:not(.today) { opacity: 0.5; }
-    .workout-container {
-      margin-top: 20px; text-align: left; background: var(--card); padding: 20px; border-radius: 8px;
-      max-width: 500px; margin-left: auto; margin-right: auto; border: 1px solid var(--border);
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background: black;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
     }
-    .checkbox { margin: 5px 0; }
-    #days-header {
-      display: grid; grid-template-columns: repeat(7, 1fr); max-width: 900px; margin: auto; font-weight: bold; margin-bottom: 10px;
+    #main-content {
+      display: none;
     }
-    .toggle-mode {
-      position: fixed; top: 10px; right: 10px; background: var(--card); border: 1px solid var(--border);
-      color: var(--text); padding: 5px 10px; border-radius: 4px; cursor: pointer; z-index: 3;
+    iframe {
+      width: 100%;
+      height: 100vh;
+      border: none;
     }
   </style>
 </head>
 <body>
-  <button class="toggle-mode" onclick="document.body.classList.toggle('dark')">🌙</button>
-  <h1>Zıplama Antrenman Takvimi</h1>
-  <div id="month-nav">
-    <button onclick="changeMonth(-1)">←</button>
-    <span id="month-year">Yükleniyor...</span>
-    <button onclick="changeMonth(1)">→</button>
+  <div id="login-container">
+    <h2>Yönetici Girişi</h2>
+    <input type="password" id="password" placeholder="Şifre girin..." />
+    <br />
+    <button onclick="checkPassword()">Giriş Yap</button>
+    <p id="error" style="color:red;"></p>
   </div>
-  <div id="days-header">
-    <div>Pzt</div><div>Salı</div><div>Çarş</div><div>Perş</div><div>Cuma</div><div>Ctesi</div><div>Pazar</div>
+
+  <div id="main-content">
+    <iframe src="index.html?admin=1"></iframe>
   </div>
-  <div class="calendar" id="calendar"></div>
-  <div class="workout-container" id="workout-details">Gün bilgisi yüklenecek...</div>
 
   <script>
-    const binId = '687a13b96213bd325afbbe5e';
-    const apiKey = '$2a$10$sNHjrdpRXLmd4/CDDtyxZOsljKtoyVaXwUTlb4/GSqVxF.XyAwfj2';
-    let jsonData = {};
-    let currentMonth = new Date().getMonth();
-    let currentYear = new Date().getFullYear();
-
-    function formatDate(date) {
-      const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-      return offsetDate.toISOString().split('T')[0];
+    const correctPassword = "admin123"; // Giriş şifresi
+    function checkPassword() {
+      const input = document.getElementById("password").value;
+      if (input === correctPassword) {
+        document.getElementById("login-container").style.display = "none";
+        document.getElementById("main-content").style.display = "block";
+      } else {
+        document.getElementById("error").innerText = "Şifre yanlış!";
+      }
     }
-
-    async function fetchData() {
-      const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
-        headers: { 'X-Master-Key': apiKey }
-      });
-      const data = await res.json();
-      jsonData = data.record;
-      renderCalendar(currentMonth, currentYear);
-      showWorkoutDetails(formatDate(new Date()));
-    }
-
-    
-function renderCalendar(month, year) {
-  const calendar = document.getElementById('calendar');
-  const monthYearText = document.getElementById('month-year');
-  calendar.innerHTML = '';
-  const date = new Date(year, month, 1);
-  const todayStr = formatDate(new Date());
-
-  const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül"];
-  monthYearText.textContent = `${monthNames[month]} ${year}`;
-
-  while (date.getMonth() === month) {
-    const dateStr = formatDate(date);
-    const dayEl = document.createElement('div');
-    dayEl.className = 'day';
-    dayEl.textContent = date.getDate();
-
-    if (dateStr === todayStr) dayEl.classList.add('today');
-    if (dateStr < todayStr) dayEl.classList.add('past-day');
-
-    const entry = jsonData[dateStr];
-    if (entry) {
-      const doneCount = entry.exercises.filter(e => e.done).length;
-      if (doneCount === 0) dayEl.classList.add('incomplete');
-      else if (doneCount < entry.exercises.length) dayEl.classList.add('in-progress');
-      else dayEl.classList.add('completed');
-    }
-
-    dayEl.onclick = () => showWorkoutDetails(dateStr);
-    calendar.appendChild(dayEl);
-    date.setDate(date.getDate() + 1);
-  }
-}
-
-
-    
-function showWorkoutDetails(dateStr) {
-  const container = document.getElementById('workout-details');
-  const todayStr = formatDate(new Date());
-  const entry = jsonData[dateStr];
-  container.innerHTML = `<h3>${dateStr} Antrenmanı</h3>`;
-
-  if (!entry) {
-    container.innerHTML += `<p>Bu tarihte antrenman yok.</p>`;
-    return;
-  }
-
-  entry.exercises.forEach((exercise, idx) => {
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.disabled = (dateStr !== todayStr);
-    checkbox.checked = exercise.done;
-    checkbox.onchange = async () => {
-      exercise.done = checkbox.checked;
-      await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Master-Key': apiKey
-        },
-        body: JSON.stringify(jsonData)
-      });
-      renderCalendar(currentMonth, currentYear);
-    };
-
-    const label = document.createElement("label");
-    label.className = "checkbox";
-    label.appendChild(checkbox);
-    label.append(` ${exercise.name}`);
-
-    container.appendChild(label);
-    container.appendChild(document.createElement("br"));
-  });
-}
-
-
-    function changeMonth(offset) {
-      const validMonths = [6, 7, 8];
-      let next = currentMonth + offset;
-      if (!validMonths.includes(next)) return;
-      currentMonth = next;
-      renderCalendar(currentMonth, currentYear);
-    }
-
-    fetchData();
   </script>
 </body>
 </html>
