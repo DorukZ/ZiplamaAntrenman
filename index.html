@@ -1,4 +1,3 @@
-<!-- Bu dosya senin verdiğin orijinal HTML'dir, sadece tik kutuları devre dışı -->
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -74,6 +73,7 @@
   <div class="workout-container" id="workout-details">Gün bilgisi yüklenecek...</div>
 
   <script>
+    const isAdmin = window.location.search.includes("admin=1");
     const binId = '687a13b96213bd325afbbe5e';
     const apiKey = '$2a$10$sNHjrdpRXLmd4/CDDtyxZOsljKtoyVaXwUTlb4/GSqVxF.XyAwfj2';
     let jsonData = {};
@@ -93,6 +93,17 @@
       jsonData = data.record;
       renderCalendar(currentMonth, currentYear);
       showWorkoutDetails(formatDate(new Date()));
+    }
+
+    async function saveData() {
+      await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': apiKey
+        },
+        body: JSON.stringify(jsonData)
+      });
     }
 
     function renderCalendar(month, year) {
@@ -130,6 +141,7 @@
 
     function showWorkoutDetails(dateStr) {
       const container = document.getElementById('workout-details');
+      const todayStr = formatDate(new Date());
       const entry = jsonData[dateStr];
       container.innerHTML = `<h3>${dateStr} Antrenmanı</h3>`;
 
@@ -138,11 +150,16 @@
         return;
       }
 
-      entry.exercises.forEach((exercise) => {
+      entry.exercises.forEach((exercise, idx) => {
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
+        checkbox.disabled = !isAdmin;
         checkbox.checked = exercise.done;
-        checkbox.disabled = true;  // ❌ Kullanıcı sayfasında tiklenemez
+        checkbox.onchange = async () => {
+          exercise.done = checkbox.checked;
+          await saveData();
+          renderCalendar(currentMonth, currentYear);
+        };
 
         const label = document.createElement("label");
         label.className = "checkbox";
