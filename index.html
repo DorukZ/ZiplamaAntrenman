@@ -66,7 +66,9 @@
     <span id="month-year">Yükleniyor...</span>
     <button onclick="changeMonth(1)">→</button>
   </div>
-  <div id="days-header"></div>
+  <div id="days-header">
+    <div>Pzt</div><div>Salı</div><div>Çarş</div><div>Perş</div><div>Cuma</div><div>Ctesi</div><div>Pazar</div>
+  </div>
   <div class="calendar" id="calendar"></div>
   <div class="workout-container" id="workout-details">Gün bilgisi yüklenecek...</div>
 
@@ -103,18 +105,6 @@
       });
     }
 
-    function renderDaysHeader(firstDayIndex) {
-      const days = ['Pzt', 'Salı', 'Çarş', 'Perş', 'Cuma', 'Ctesi', 'Pazar'];
-      const header = document.getElementById('days-header');
-      header.innerHTML = '';
-      for (let i = 0; i < 7; i++) {
-        const dayName = days[(i + firstDayIndex) % 7];
-        const div = document.createElement('div');
-        div.textContent = dayName;
-        header.appendChild(div);
-      }
-    }
-
     function renderCalendar(month, year) {
       const calendar = document.getElementById('calendar');
       const monthYearText = document.getElementById('month-year');
@@ -125,12 +115,11 @@
       const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül"];
       monthYearText.textContent = `${monthNames[month]} ${year}`;
 
-      const firstDayIndex = (date.getDay() + 6) % 7;
-      renderDaysHeader(0); // haftanın günleri pazartesi ile başlasın
-
+      let firstDayIndex = date.getDay();
+      firstDayIndex = (firstDayIndex === 0) ? 6 : firstDayIndex - 1;
       for (let i = 0; i < firstDayIndex; i++) {
-        const filler = document.createElement('div');
-        calendar.appendChild(filler);
+        const empty = document.createElement('div');
+        calendar.appendChild(empty);
       }
 
       while (date.getMonth() === month) {
@@ -201,6 +190,94 @@
     }
 
     fetchData();
+
+    // Background particle animation
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    let particles = [];
+    const num = 100;
+    const mouse = { x: null, y: null, radius: 100 };
+
+    window.addEventListener('mousemove', e => {
+      mouse.x = e.x;
+      mouse.y = e.y;
+    });
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    function Particle() {
+      this.x = Math.random() * canvas.width;
+      this.y = Math.random() * canvas.height;
+      this.vx = (Math.random() - 0.5) * 1;
+      this.vy = (Math.random() - 0.5) * 1;
+      this.size = 2;
+    }
+
+    Particle.prototype.draw = function () {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text');
+      ctx.fill();
+    };
+
+    Particle.prototype.update = function () {
+      this.x += this.vx;
+      this.y += this.vy;
+
+      const dx = this.x - mouse.x;
+      const dy = this.y - mouse.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < mouse.radius) {
+        const angle = Math.atan2(dy, dx);
+        this.x += Math.cos(angle) * 2;
+        this.y += Math.sin(angle) * 2;
+      }
+
+      if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+      if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+    };
+
+    function initParticles() {
+      particles = [];
+      for (let i = 0; i < num; i++) particles.push(new Particle());
+    }
+
+    function connectParticles() {
+      for (let a = 0; a < particles.length; a++) {
+        for (let b = a + 1; b < particles.length; b++) {
+          let dx = particles[a].x - particles[b].x;
+          let dy = particles[a].y - particles[b].y;
+          let distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance < 120) {
+            ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--text');
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(particles[a].x, particles[a].y);
+            ctx.lineTo(particles[b].x, particles[b].y);
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      connectParticles();
+      requestAnimationFrame(animate);
+    }
+
+    initParticles();
+    animate();
   </script>
 </body>
 </html>
