@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <title>Admin Panel - Tam Entegre</title>
+  <meta charset="UTF-8" />
+  <title>Zıplama Antrenman Takvimi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     :root {
@@ -18,42 +18,51 @@
       --border: #444;
     }
     body {
-      margin: 0;
-      padding: 1rem;
-      font-family: Arial, sans-serif;
+      font-family: Arial;
       background: var(--bg);
+      margin: 0;
+      padding: 0;
       color: var(--text);
       transition: background 0.3s, color 0.3s;
     }
-    #login-screen {
+    /* Login Overlay */
+    #loginOverlay {
       position: fixed;
       inset: 0;
       background: var(--bg);
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
-      z-index: 9999;
+      justify-content: center;
+      z-index: 1000;
     }
-    #login-screen input {
+    #loginOverlay input {
       padding: 10px;
       font-size: 1rem;
       margin-bottom: 10px;
       width: 200px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
     }
-    #login-screen button {
+    #loginOverlay button {
       padding: 10px 20px;
       font-size: 1rem;
       background: black;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 4px;
       cursor: pointer;
     }
-    #admin-content {
-      display: none;
+    #loginOverlay p {
+      color: red;
+      margin-top: 5px;
     }
-    /* Orijinal index.html stil ve yapı tamamen buraya eklendi */
+    /* Main content hidden until login */
+    #mainContent {
+      display: none;
+      padding: 1rem;
+    }
+    /* Existing styles */
     h1 { margin-bottom: 10px; }
     #month-nav { margin-bottom: 1rem; display: flex; justify-content: center; align-items: center; gap: 10px; }
     .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; max-width: 900px; margin: auto; }
@@ -67,22 +76,21 @@
     .checkbox { margin: 5px 0; }
     #days-header { display: grid; grid-template-columns: repeat(7, 1fr); max-width: 900px; margin: auto; font-weight: bold; margin-bottom: 10px; }
     .toggle-mode { position: fixed; top: 10px; right: 10px; background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 5px 10px; border-radius: 4px; cursor: pointer; z-index: 3; }
-    canvas#bgCanvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; }
+    #bgCanvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; }
   </style>
 </head>
 <body>
-  <div id="login-screen">
+  <div id="loginOverlay">
     <h2>Yönetici Girişi</h2>
-    <input type="password" id="password" placeholder="Şifre girin…" />
-    <button onclick="checkPassword()">Giriş</button>
-    <p id="error" style="color:red;"></p>
+    <input type="password" id="adminPassword" placeholder="Şifre girin…" />
+    <button onclick="attemptLogin()">Giriş</button>
+    <p id="loginError"></p>
   </div>
 
-  <div id="admin-content">
-    <!-- Orijinal index.html içeriği başlıyor -->
+  <div id="mainContent">
     <canvas id="bgCanvas"></canvas>
     <button class="toggle-mode" onclick="toggleDarkMode()">🌙</button>
-    <h1>Zıplama Antrenman Takvimi (Admin)</h1>
+    <h1>Zıplama Antrenman Takvimi</h1>
     <div id="month-nav">
       <button onclick="changeMonth(-1)">←</button>
       <span id="month-year">Yükleniyor...</span>
@@ -93,28 +101,28 @@
     </div>
     <div class="calendar" id="calendar"></div>
     <div class="workout-container" id="workout-details">Gün bilgisi yüklenecek...</div>
-    <!-- Orijinal index.html içeriği bitiyor -->
   </div>
 
   <script>
-    const correctHash = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"; // admin123 SHA-256
-    async function checkPassword() {
-      const pwd = document.getElementById('password').value;
-      const buf = new TextEncoder().encode(pwd);
-      const hashBuf = await crypto.subtle.digest('SHA-256', buf);
-      const hashArr = Array.from(new Uint8Array(hashBuf));
-      const hashHex = hashArr.map(b => b.toString(16).padStart(2,'0')).join('');
+    const correctHash = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9'; // admin123 SHA-256
+    function hashPassword(pwd) {
+      return crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwd))
+        .then(buf => Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join(''));    
+    }
+    async function attemptLogin() {
+      const pwd = document.getElementById('adminPassword').value;
+      const hashHex = await hashPassword(pwd);
       if (hashHex === correctHash) {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('admin-content').style.display = 'block';
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
         initApp(true);
       } else {
-        document.getElementById('error').textContent = 'Hatalı şifre.';
+        document.getElementById('loginError').textContent = 'Şifre yanlış.';
       }
     }
 
+    // Uygulama fonksiyonları (fetchData, renderCalendar, showWorkoutDetails, vs.)
     function initApp(isAdmin) {
-      // Orijinal index.js fonksiyonları
       const binId = '687a13b96213bd325afbbe5e';
       const apiKey = '$2a$10$sNHjrdpRXLmd4/CDDtyxZOsljKtoyVaXwUTlb4/GSqVxF.XyAwfj2';
       let jsonData = {};
@@ -122,76 +130,60 @@
       let currentYear = new Date().getFullYear();
 
       function formatDate(date) {
-        const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-        return offsetDate.toISOString().split('T')[0];
+        const d = new Date(date.getTime() - date.getTimezoneOffset()*60000);
+        return d.toISOString().split('T')[0];
       }
 
       async function fetchData() {
-        const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, { headers: { 'X-Master-Key': apiKey } });
-        const data = await res.json();
-        jsonData = data.record;
+        const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, { headers: {'X-Master-Key': apiKey} });
+        const data = await res.json(); jsonData = data.record;
         renderCalendar(currentMonth, currentYear);
         showWorkoutDetails(formatDate(new Date()));
       }
-
       async function saveData() {
-        await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
-          method: 'PUT', headers: { 'Content-Type':'application/json','X-Master-Key':apiKey }, body: JSON.stringify(jsonData)
-        });
+        await fetch(`https://api.jsonbin.io/v3/b/${binId}`, { method:'PUT', headers:{'Content-Type':'application/json','X-Master-Key':apiKey}, body:JSON.stringify(jsonData) });
       }
-
       function renderCalendar(month, year) {
-        const calendar = document.getElementById('calendar');
-        const monthYearText = document.getElementById('month-year');
-        calendar.innerHTML = '';
-        const date = new Date(year, month, 1);
-        const todayStr = formatDate(new Date());
-        // Haftanın başlangıcını düzelt
-        const startDay = date.getDay(); const offset = (startDay + 6) % 7;
-        for (let i=0;i<offset;i++){ const empty=document.createElement('div'); empty.className='day'; empty.style.visibility='hidden'; calendar.appendChild(empty);}        
-        const monthNames = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül"];
-        monthYearText.textContent = `${monthNames[month]} ${year}`;
-        while (date.getMonth()===month) {
-          const dateStr = formatDate(date);
-          const dayEl=document.createElement('div'); dayEl.className='day'; dayEl.textContent=date.getDate();
-          if(dateStr===todayStr) dayEl.classList.add('today');
-          if(dateStr<todayStr) dayEl.classList.add('past-day');
-          const entry=jsonData[dateStr];
-          if(entry){ const doneCount=entry.exercises.filter(e=>e.done).length;
-            if(doneCount===0) dayEl.classList.add('incomplete');
-            else if(doneCount<entry.exercises.length) dayEl.classList.add('in-progress');
-            else dayEl.classList.add('completed'); }
-          dayEl.onclick=()=>showWorkoutDetails(dateStr);
-          calendar.appendChild(dayEl);
+        const cal=document.getElementById('calendar'), monText=document.getElementById('month-year'); cal.innerHTML='';
+        const date=new Date(year,month,1), today=formatDate(new Date());
+        const startDay=date.getDay(), offset=(startDay+6)%7;
+        for(let i=0;i<offset;i++){ const e=document.createElement('div');e.className='day';e.style.visibility='hidden';cal.appendChild(e);}        
+        const months=["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül"];
+        monText.textContent=`${months[month]} ${year}`;
+        while(date.getMonth()===month){
+          const ds=formatDate(date), dayEl=document.createElement('div');dayEl.className='day';dayEl.textContent=date.getDate();
+          if(ds===today) dayEl.classList.add('today'); if(ds<today) dayEl.classList.add('past-day');
+          const entry=jsonData[ds]; if(entry){const done=entry.exercises.filter(e=>e.done).length;
+            if(done===0) dayEl.classList.add('incomplete'); else if(done<entry.exercises.length) dayEl.classList.add('in-progress'); else dayEl.classList.add('completed');}
+          dayEl.onclick=()=>showWorkoutDetails(ds);
+          cal.appendChild(dayEl);
           date.setDate(date.getDate()+1);
         }
       }
-
-      function showWorkoutDetails(dateStr) {
-        const container=document.getElementById('workout-details'); container.innerHTML=`<h3>${dateStr} Antrenmanı</h3>`;
-        const entry=jsonData[dateStr]; if(!entry){ container.innerHTML+=`<p>Bu tarihte antrenman yok.</p>`; return; }
-        entry.exercises.forEach((ex,i)=>{
+      function showWorkoutDetails(ds) {
+        const cont=document.getElementById('workout-details'); cont.innerHTML=`<h3>${ds} Antrenmanı</h3>`;
+        const e=jsonData[ds]; if(!e){ cont.innerHTML+='<p>Bu tarihte antrenman yok.</p>'; return; }
+        e.exercises.forEach((ex,i)=>{
           const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=ex.done; cb.disabled=!isAdmin;
-          cb.onchange=async()=>{ ex.done=cb.checked; await saveData(); renderCalendar(currentMonth,currentYear);}        
+          cb.onchange=async()=>{ ex.done=cb.checked; await saveData(); renderCalendar(currentMonth,currentYear); };
           const lbl=document.createElement('label'); lbl.className='checkbox'; lbl.appendChild(cb); lbl.append(` ${ex.name}`);
-          container.appendChild(lbl); container.appendChild(document.createElement('br'));
+          cont.appendChild(lbl); cont.appendChild(document.createElement('br'));
         });
       }
-
-      function changeMonth(offset) { const val=[6,7,8]; const next=currentMonth+offset; if(!val.includes(next)) return; currentMonth=next; renderCalendar(currentMonth,currentYear);}      
+      function changeMonth(o){ const v=[6,7,8], n=currentMonth+o; if(!v.includes(n)) return; currentMonth=n; renderCalendar(n,currentYear);}      
       function toggleDarkMode(){ document.body.classList.toggle('dark'); }
-
-      // Canvas Animation
-      const canvas = document.getElementById('bgCanvas'); const ctx = canvas.getContext('2d'); canvas.width=window.innerWidth; canvas.height=window.innerHeight;
-      let particles=[]; const num=100; const mouse={x:null,y:null,radius:100};
-      window.addEventListener('mousemove',e=>{mouse.x=e.x;mouse.y=e.y;}); window.addEventListener('resize',()=>{canvas.width=window.innerWidth;canvas.height=window.innerHeight;});
+      fetchData();
+      // Canvas animasyon kodu
+      const canvas=document.getElementById('bgCanvas'), ctx=canvas.getContext('2d'); canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+      let parts=[]; const num=100, mouse={x:null,y:null,radius:100};
+      window.addEventListener('mousemove',e=>{mouse.x=e.x; mouse.y=e.y;});
+      window.addEventListener('resize',()=>{canvas.width=window.innerWidth; canvas.height=window.innerHeight;});
       function Particle(){ this.x=Math.random()*canvas.width; this.y=Math.random()*canvas.height; this.vx=(Math.random()-0.5); this.vy=(Math.random()-0.5); this.size=2; }
       Particle.prototype.draw=function(){ ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--text'); ctx.fill(); };
       Particle.prototype.update=function(){ this.x+=this.vx; this.y+=this.vy; const dx=this.x-mouse.x, dy=this.y-mouse.y, d=Math.hypot(dx,dy); if(d<mouse.radius){ const a=Math.atan2(dy,dx); this.x+=Math.cos(a)*2; this.y+=Math.sin(a)*2;} if(this.x<0||this.x>canvas.width) this.vx*=-1; if(this.y<0||this.y>canvas.height) this.vy*=-1; };
-      function initParticles(){ particles=[]; for(let i=0;i<num;i++) particles.push(new Particle()); }
-      function connectParticles(){ for(let a=0;a<particles.length;a++){ for(let b=a+1;b<particles.length;b++){ const dx=particles[a].x-particles[b].x; const dy=particles[a].y-particles[b].y; if(Math.hypot(dx,dy)<120){ ctx.strokeStyle=getComputedStyle(document.body).getPropertyValue('--text'); ctx.lineWidth=0.5; ctx.beginPath(); ctx.moveTo(particles[a].x,particles[a].y); ctx.lineTo(particles[b].x,particles[b].y); ctx.stroke(); }}}}
-      function animate(){ ctx.clearRect(0,0,canvas.width,canvas.height); particles.forEach(p=>{p.update();p.draw();}); connectParticles(); requestAnimationFrame(animate);} initParticles(); animate();
-      fetchData();
+      function initParticles(){ parts=[]; for(let i=0;i<num;i++) parts.push(new Particle()); }
+      function connectParticles(){ for(let a=0;a<parts.length;a++){ for(let b=a+1;b<parts.length;b++){ const dx=parts[a].x-parts[b].x, dy=parts[a].y-parts[b].y; if(Math.hypot(dx,dy)<120){ ctx.strokeStyle=getComputedStyle(document.body).getPropertyValue('--text'); ctx.lineWidth=0.5; ctx.beginPath(); ctx.moveTo(parts[a].x,parts[a].y); ctx.lineTo(parts[b].x,parts[b].y); ctx.stroke(); }}}}
+      function animate(){ ctx.clearRect(0,0,canvas.width,canvas.height); parts.forEach(p=>{p.update(); p.draw();}); connectParticles(); requestAnimationFrame(animate);} initParticles(); animate();
     }
   </script>
 </body>
