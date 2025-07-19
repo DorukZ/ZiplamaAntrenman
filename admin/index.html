@@ -2,33 +2,72 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <title>Admin Panel</title>
+  <title>Admin Panel - Giriş</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body{margin:0;padding:0;font-family:Arial;background:#121212;color:white;}
-    #login{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;}
-    input,button{padding:10px;margin:5px;width:200px;font-size:16px;border:none;border-radius:5px;}
-    button{background:#1e88e5;color:white;cursor:pointer;}
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: #121212;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    #loginBox {
+      background: #1e1e1e;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      text-align: center;
+    }
+    #loginBox input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    #loginBox button {
+      width: 100%;
+      padding: 10px;
+      background: #2979ff;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <div id="login">
+  <div id="loginBox">
     <h2>Yönetici Girişi</h2>
-    <input type="password" id="pass" placeholder="Şifre">
-    <button onclick="login()">Giriş</button>
+    <input type="password" id="password" placeholder="Şifre girin…" />
+    <button onclick="login()">Giriş Yap</button>
   </div>
 
   <script>
-    async function login(){
-      const val=document.getElementById('pass').value;
-      const buf=new TextEncoder().encode(val);
-      const hashBuf=await crypto.subtle.digest('SHA-256',buf);
-      const hashArr=Array.from(new Uint8Array(hashBuf));
-      const hashHex=hashArr.map(b=>b.toString(16).padStart(2,'0')).join('');
-      // admin123 → ef92b7...94f
-      if(hashHex==='ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f'){
-        window.location.href='index.html?admin=true';
-      } else alert('Şifre yanlış!');
+    // "admin123" parolasının SHA-256 hash'i
+    const correctHash = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9";
+
+    async function login() {
+      const pwd = document.getElementById("password").value;
+      // SHA-256 hesapla
+      const buf = new TextEncoder().encode(pwd);
+      const hashBuf = await crypto.subtle.digest("SHA-256", buf);
+      const hashArr = Array.from(new Uint8Array(hashBuf));
+      const hashHex = hashArr.map(b => b.toString(16).padStart(2, "0")).join("");
+
+      if (hashHex === correctHash) {
+        // Başarılı ise admin modda index.html'i aç
+        window.location.href = "index.html?admin=true";
+      } else {
+        alert("Şifre yanlış!");
+      }
     }
   </script>
 </body>
