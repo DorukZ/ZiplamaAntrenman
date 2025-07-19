@@ -62,7 +62,7 @@
       display: none;
       padding: 1rem;
     }
-    /* Existing styles */
+    /* Orijinal Stil ve Yapı (Değiştirilmedi) */
     h1 { margin-bottom: 10px; }
     #month-nav { margin-bottom: 1rem; display: flex; justify-content: center; align-items: center; gap: 10px; }
     .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; max-width: 900px; margin: auto; }
@@ -104,10 +104,10 @@
   </div>
 
   <script>
-    const correctHash = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9'; // admin123 SHA-256
+    const correctHash = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9'; // admin123 SHA‑256
     function hashPassword(pwd) {
       return crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwd))
-        .then(buf => Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join(''));    
+        .then(buf => Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join(''));
     }
     async function attemptLogin() {
       const pwd = document.getElementById('adminPassword').value;
@@ -121,7 +121,6 @@
       }
     }
 
-    // Uygulama fonksiyonları (fetchData, renderCalendar, showWorkoutDetails, vs.)
     function initApp(isAdmin) {
       const binId = '687a13b96213bd325afbbe5e';
       const apiKey = '$2a$10$sNHjrdpRXLmd4/CDDtyxZOsljKtoyVaXwUTlb4/GSqVxF.XyAwfj2';
@@ -135,55 +134,164 @@
       }
 
       async function fetchData() {
-        const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, { headers: {'X-Master-Key': apiKey} });
-        const data = await res.json(); jsonData = data.record;
+        const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, { headers: { 'X-Master-Key': apiKey } });
+        const data = await res.json();
+        jsonData = data.record;
         renderCalendar(currentMonth, currentYear);
         showWorkoutDetails(formatDate(new Date()));
       }
       async function saveData() {
-        await fetch(`https://api.jsonbin.io/v3/b/${binId}`, { method:'PUT', headers:{'Content-Type':'application/json','X-Master-Key':apiKey}, body:JSON.stringify(jsonData) });
-      }
-      function renderCalendar(month, year) {
-        const cal=document.getElementById('calendar'), monText=document.getElementById('month-year'); cal.innerHTML='';
-        const date=new Date(year,month,1), today=formatDate(new Date());
-        const startDay=date.getDay(), offset=(startDay+6)%7;
-        for(let i=0;i<offset;i++){ const e=document.createElement('div');e.className='day';e.style.visibility='hidden';cal.appendChild(e);}        
-        const months=["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül"];
-        monText.textContent=`${months[month]} ${year}`;
-        while(date.getMonth()===month){
-          const ds=formatDate(date), dayEl=document.createElement('div');dayEl.className='day';dayEl.textContent=date.getDate();
-          if(ds===today) dayEl.classList.add('today'); if(ds<today) dayEl.classList.add('past-day');
-          const entry=jsonData[ds]; if(entry){const done=entry.exercises.filter(e=>e.done).length;
-            if(done===0) dayEl.classList.add('incomplete'); else if(done<entry.exercises.length) dayEl.classList.add('in-progress'); else dayEl.classList.add('completed');}
-          dayEl.onclick=()=>showWorkoutDetails(ds);
-          cal.appendChild(dayEl);
-          date.setDate(date.getDate()+1);
-        }
-      }
-      function showWorkoutDetails(ds) {
-        const cont=document.getElementById('workout-details'); cont.innerHTML=`<h3>${ds} Antrenmanı</h3>`;
-        const e=jsonData[ds]; if(!e){ cont.innerHTML+='<p>Bu tarihte antrenman yok.</p>'; return; }
-        e.exercises.forEach((ex,i)=>{
-          const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=ex.done; cb.disabled=!isAdmin;
-          cb.onchange=async()=>{ ex.done=cb.checked; await saveData(); renderCalendar(currentMonth,currentYear); };
-          const lbl=document.createElement('label'); lbl.className='checkbox'; lbl.appendChild(cb); lbl.append(` ${ex.name}`);
-          cont.appendChild(lbl); cont.appendChild(document.createElement('br'));
+        await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'X-Master-Key': apiKey },
+          body: JSON.stringify(jsonData)
         });
       }
-      function changeMonth(o){ const v=[6,7,8], n=currentMonth+o; if(!v.includes(n)) return; currentMonth=n; renderCalendar(n,currentYear);}      
-      function toggleDarkMode(){ document.body.classList.toggle('dark'); }
+
+      function renderCalendar(month, year) {
+        const cal = document.getElementById('calendar'),
+              monText = document.getElementById('month-year');
+        cal.innerHTML = '';
+        const date = new Date(year, month, 1),
+              today = formatDate(new Date());
+        const startDay = date.getDay(),
+              offset = (startDay + 6) % 7;
+        for (let i=0; i<offset; i++) {
+          const empty = document.createElement('div');
+          empty.className = 'day';
+          empty.style.visibility = 'hidden';
+          cal.appendChild(empty);
+        }
+        const months = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül"];
+        monText.textContent = `${months[month]} ${year}`;
+        while (date.getMonth() === month) {
+          const ds = formatDate(date),
+                dayEl = document.createElement('div');
+          dayEl.className = 'day';
+          dayEl.textContent = date.getDate();
+          if (ds === today) dayEl.classList.add('today');
+          if (ds < today) dayEl.classList.add('past-day');
+          const entry = jsonData[ds];
+          if (entry) {
+            const done = entry.exercises.filter(e => e.done).length;
+            if (done === 0) dayEl.classList.add('incomplete');
+            else if (done < entry.exercises.length) dayEl.classList.add('in-progress');
+            else dayEl.classList.add('completed');
+          }
+          dayEl.onclick = () => showWorkoutDetails(ds);
+          cal.appendChild(dayEl);
+          date.setDate(date.getDate() + 1);
+        }
+      }
+
+      function showWorkoutDetails(ds) {
+        const cont = document.getElementById('workout-details');
+        cont.innerHTML = `<h3>${ds} Antrenmanı</h3>`;
+        const entry = jsonData[ds];
+        if (!entry) {
+          cont.innerHTML += `<p>Bu tarihte antrenman yok.</p>`;
+          return;
+        }
+        entry.exercises.forEach(ex => {
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = ex.done;
+          cb.disabled = !isAdmin;
+          cb.onchange = async () => {
+            ex.done = cb.checked;
+            await saveData();
+            renderCalendar(currentMonth, currentYear);
+          };
+          const lbl = document.createElement('label');
+          lbl.className = 'checkbox';
+          lbl.appendChild(cb);
+          lbl.append(` ${ex.name}`);
+          cont.appendChild(lbl);
+          cont.appendChild(document.createElement('br'));
+        });
+      }
+
+      function changeMonth(o) {
+        const months = [6,7,8];
+        const n = currentMonth + o;
+        if (!months.includes(n)) return;
+        currentMonth = n;
+        renderCalendar(n, currentYear);
+      }
+      function toggleDarkMode() {
+        document.body.classList.toggle('dark');
+      }
+
       fetchData();
-      // Canvas animasyon kodu
-      const canvas=document.getElementById('bgCanvas'), ctx=canvas.getContext('2d'); canvas.width=window.innerWidth; canvas.height=window.innerHeight;
-      let parts=[]; const num=100, mouse={x:null,y:null,radius:100};
-      window.addEventListener('mousemove',e=>{mouse.x=e.x; mouse.y=e.y;});
-      window.addEventListener('resize',()=>{canvas.width=window.innerWidth; canvas.height=window.innerHeight;});
-      function Particle(){ this.x=Math.random()*canvas.width; this.y=Math.random()*canvas.height; this.vx=(Math.random()-0.5); this.vy=(Math.random()-0.5); this.size=2; }
-      Particle.prototype.draw=function(){ ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--text'); ctx.fill(); };
-      Particle.prototype.update=function(){ this.x+=this.vx; this.y+=this.vy; const dx=this.x-mouse.x, dy=this.y-mouse.y, d=Math.hypot(dx,dy); if(d<mouse.radius){ const a=Math.atan2(dy,dx); this.x+=Math.cos(a)*2; this.y+=Math.sin(a)*2;} if(this.x<0||this.x>canvas.width) this.vx*=-1; if(this.y<0||this.y>canvas.height) this.vy*=-1; };
-      function initParticles(){ parts=[]; for(let i=0;i<num;i++) parts.push(new Particle()); }
-      function connectParticles(){ for(let a=0;a<parts.length;a++){ for(let b=a+1;b<parts.length;b++){ const dx=parts[a].x-parts[b].x, dy=parts[a].y-parts[b].y; if(Math.hypot(dx,dy)<120){ ctx.strokeStyle=getComputedStyle(document.body).getPropertyValue('--text'); ctx.lineWidth=0.5; ctx.beginPath(); ctx.moveTo(parts[a].x,parts[a].y); ctx.lineTo(parts[b].x,parts[b].y); ctx.stroke(); }}}}
-      function animate(){ ctx.clearRect(0,0,canvas.width,canvas.height); parts.forEach(p=>{p.update(); p.draw();}); connectParticles(); requestAnimationFrame(animate);} initParticles(); animate();
+
+      // Canvas animasyon
+      const canvas = document.getElementById('bgCanvas'),
+            ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      let parts = [];
+      const num = 100, mouse = { x:null, y:null, radius:100 };
+
+      window.addEventListener('mousemove', e => {
+        mouse.x = e.x;
+        mouse.y = e.y;
+      });
+      window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      });
+
+      function Particle() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = (Math.random() - 0.5);
+        this.vy = (Math.random() - 0.5);
+        this.size = 2;
+      }
+      Particle.prototype.draw = function() {
+        ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+        ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text');
+        ctx.fill();
+      };
+      Particle.prototype.update = function() {
+        this.x += this.vx; this.y += this.vy;
+        const dx = this.x - mouse.x, dy = this.y - mouse.y, d = Math.hypot(dx,dy);
+        if (d < mouse.radius) {
+          const a = Math.atan2(dy,dx);
+          this.x += Math.cos(a)*2;
+          this.y += Math.sin(a)*2;
+        }
+        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+      };
+      function initParticles() {
+        parts = [];
+        for(let i=0; i<num; i++) parts.push(new Particle());
+      }
+      function connectParticles() {
+        for(let a=0; a<parts.length; a++){
+          for(let b=a+1; b<parts.length; b++){
+            const dx = parts[a].x - parts[b].x;
+            const dy = parts[a].y - parts[b].y;
+            if (Math.hypot(dx,dy) < 120) {
+              ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--text');
+              ctx.lineWidth = 0.5;
+              ctx.beginPath();
+              ctx.moveTo(parts[a].x, parts[a].y);
+              ctx.lineTo(parts[b].x, parts[b].y);
+              ctx.stroke();
+            }
+          }
+        }
+      }
+      function animate() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        parts.forEach(p=>{ p.update(); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+      }
+      initParticles();
+      animate();
     }
   </script>
 </body>
