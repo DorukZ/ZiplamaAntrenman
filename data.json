@@ -1,0 +1,13 @@
+{
+  "2025-07-20": {
+    "exercises": [
+      { "name": "Squat", "done": false },
+      { "name": "Lunge", "done": false }
+    ]
+  },
+  "2025-07-21": {
+    "exercises": [
+      { "name": "Box Jump", "done": false }
+    ]
+  }
+}
