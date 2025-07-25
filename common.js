@@ -1,6 +1,6 @@
 
 const BIN_ID = "687a13b96213bd325afbbe5e";
-const API_KEY = "$2a$10$QA6KqRk0mXsaLokqQMnCTepl1C0/gyhHNDQvJo.43KGX.bBO8m7p.";
+const API_KEY = "$2a$10$PcJkIv48pesO0aLFSpA13OZaEjbtZ0YvCdYGfzehuQsHfySO7OSKi";
 const BASE_URL = "https://api.jsonbin.io/v3/b/" + BIN_ID;
 
 async function fetchData() {
